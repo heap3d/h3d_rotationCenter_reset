@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package version="801">
+	<kit name="h3d_rotationCenter_reset" restart="YES">
+		<source target="h3d_rotationCenter_reset/index.cfg">index.cfg</source>
+		<source target="h3d_rotationCenter_reset/index.xml">index.xml</source>
+		<source target="h3d_rotationCenter_reset/scripts/rotationCenter_reset.py">scripts/rotationCenter_reset.py</source>
+	</kit>
+	<message button="Help">h3d_rotationCenter_reset Kit installation complete.</message>
+</package>
