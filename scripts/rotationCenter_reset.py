@@ -23,7 +23,7 @@ def get_rotation_parent(source):
     parent = get_parent(source)
     if parent is None:
         return None
-    if rotation_parent_marker in parent.name:
+    if ROTATION_PARENT_MARKER in parent.name:
         return parent
     return get_rotation_parent(parent)
 
@@ -39,7 +39,7 @@ def get_working_items_list(source, root):
         print("source item: None")
         return set()
     # stop at downstream rotation parent
-    if rotation_parent_marker in source.name:
+    if ROTATION_PARENT_MARKER in source.name:
         if source != root:
             return set()
     working_list = set()
@@ -63,7 +63,7 @@ def freeze_child_position(items_to_proceed, source, root):
         print("freeze_child_position: items list is void")
         return
     # stop at downstream rotation parent
-    if rotation_parent_marker in source.name:
+    if ROTATION_PARENT_MARKER in source.name:
         if source != root:
             print("next rotation parent marker reached")
             return
@@ -242,12 +242,12 @@ print()
 print("Start...")
 # ---------- ----------
 
-rotation_parent_marker = lx.eval("user.value h3d_rcr_rotation_marker ?")
+ROTATION_PARENT_MARKER = lx.eval("user.value h3d_rcr_rotation_marker ?")
 ref_group_name = lx.eval("user.value h3d_rcr_meshref_grp_name ?")
 failed_group_name = lx.eval("user.value h3d_rcr_failed_grp_name ?")
 
 for rotation_parent in scene.items(
-    itype=c.LOCATOR_TYPE, name="*{}*".format(rotation_parent_marker)
+    itype=c.LOCATOR_TYPE, name="*{}*".format(ROTATION_PARENT_MARKER)
 ):
     # get list of working items
     working_items_list = get_working_items_list(
