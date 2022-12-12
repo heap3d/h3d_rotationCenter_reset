@@ -36,7 +36,7 @@ def get_parent(source):
 
 def get_working_items_list(source, root):
     if source is None:
-        print('source item: None')
+        print("source item: None")
         return set()
     # stop at downstream rotation parent
     if rotation_parent_marker in source.name:
@@ -46,44 +46,47 @@ def get_working_items_list(source, root):
     # recursive call for all children
     for child in source.children(recursive=False):
         working_list.add(child)
-        working_list = working_list.union(get_working_items_list(source=child, root=root))
+        working_list = working_list.union(
+            get_working_items_list(source=child, root=root)
+        )
     return working_list
 
 
 def freeze_child_position(items_to_proceed, source, root):
     if source is None:
-        print('freeze_child_position: source is None')
+        print("freeze_child_position: source is None")
         return
     if items_to_proceed is None:
-        print('freeze_child_position: items list is None')
+        print("freeze_child_position: items list is None")
         return
     if len(items_to_proceed) == 0:
-        print('freeze_child_position: items list is void')
+        print("freeze_child_position: items list is void")
         return
     # stop at downstream rotation parent
     if rotation_parent_marker in source.name:
         if source != root:
-            print('next rotation parent marker reached')
+            print("next rotation parent marker reached")
             return
     # freeze position for children meshes
     for child in source.children(recursive=False, itemType=c.MESH_TYPE):
         if child in items_to_proceed:
             child.select(replace=True)
-            # print('freeze_child_position(): <{}> <{}>'.format(child.name, child.id))
             try:
-                lx.eval('!transform.freeze translation')
+                lx.eval("!transform.freeze translation")
             except Exception:
-                print('Item failed to freeze translation: {}'.format(child.name))
+                print("Item failed to freeze translation: {}".format(child.name))
                 failed_items.add(child)
     # recursive call freeze_child_position() for all children
     for child in source.children(recursive=False):
         if c.item_type(child.type) == c.MESHINST_TYPE:
             if child in items_to_proceed:
                 child.select(replace=True)
-                lx.eval('transform.reset translation')
+                lx.eval("transform.reset translation")
         if child in items_to_proceed:
             processed_items.add(child)
-        freeze_child_position(items_to_proceed=items_to_proceed, source=child, root=root)
+        freeze_child_position(
+            items_to_proceed=items_to_proceed, source=child, root=root
+        )
 
 
 def fix_meshref(items_list):
@@ -91,7 +94,7 @@ def fix_meshref(items_list):
         return list()
     meshref_list = list()
     for input_item in items_list:
-        if ':' in input_item.id:
+        if ":" in input_item.id:
             if c.item_type(input_item.type) == c.MESH_TYPE:
                 meshref_list.append(input_item)
     if len(meshref_list) == 0:
@@ -104,8 +107,12 @@ def fix_meshref(items_list):
     for meshref in meshref_list:
         # create copy of meshref
         meshref_copy = scene.duplicateItem(meshref, instance=False)
-        meshref_copy.name = \
-            meshref.name[:meshref.name.rfind(' (')] + ' - ' + meshref.id[:meshref.id.rfind(':')] + '_copy'
+        meshref_copy.name = (
+            meshref.name[: meshref.name.rfind(" (")]
+            + " - "
+            + meshref.id[: meshref.id.rfind(":")]
+            + "_copy"
+        )
         # replace meshref by mesh copy
         replace_mesh(meshref, meshref_copy)
         if meshref in ready_item_list:
@@ -121,9 +128,9 @@ def fix_meshref(items_list):
             if input_item in processed_instances:
                 continue
             instance_source = get_instance_source(input_item)
-            if ':' in instance_source.id:
+            if ":" in instance_source.id:
                 instance_source.select(replace=True)
-                lx.eval('select.itemInstances')
+                lx.eval("select.itemInstances")
                 selected_instances = scene.selectedByType(c.MESHINST_TYPE)
                 instance_list.extend(selected_instances)
                 processed_instances = processed_instances.union(instance_list)
@@ -151,13 +158,18 @@ def fix_meshref(items_list):
     ref_group = get_group(ref_group_name)
     # add meshref to meshref_group
     scene.deselect()
-    lx.eval('select.drop item')
+    lx.eval("select.drop item")
     lx.eval('select.subItem "{}" set'.format(ref_group.id))
-    lx.eval('item.state vis off group')  # turn off visibility
+    # turn off visibility
+    lx.eval("item.state vis off group")
     for input_item in delete_group_list:
-        if c.item_type(input_item.type) == c.MESH_TYPE or c.item_type(input_item.type) == c.MESHINST_TYPE:
+        if (
+            c.item_type(input_item.type) == c.MESH_TYPE
+            or c.item_type(input_item.type) == c.MESHINST_TYPE
+        ):
             lx.eval('select.subItem "{}" add'.format(input_item.id))
-    lx.eval('group.edit add item')  # add all selected meshrefs to meshref_group
+    # add all selected meshrefs to meshref_group
+    lx.eval("group.edit add item")
     return ready_item_list
 
 
@@ -170,9 +182,9 @@ def replace_mesh(mesh_old, mesh_new):
     # transforms
     mesh_old.select(replace=True)
     mesh_new.select()
-    lx.eval('item.match item pos')
-    lx.eval('item.match item rot')
-    lx.eval('item.match item scl')
+    lx.eval("item.match item pos")
+    lx.eval("item.match item rot")
+    lx.eval("item.match item scl")
 
 
 def get_instance_list_from_instance(instance_mesh):
@@ -190,7 +202,7 @@ def get_instance_source(instance):
         return instance
     try:
         instance.select(replace=True)
-        lx.eval('select.itemSourceSelected')
+        lx.eval("select.itemSourceSelected")
     except Exception:
         return instance
     source = scene.selected[0]
@@ -204,14 +216,17 @@ def get_instance_list_from_source(source_mesh):
         return list()
     source_mesh.select(replace=True)
     try:
-        lx.eval('select.itemInstances')
+        lx.eval("select.itemInstances")
     except Exception:
-        return list()  # return void list if no instances
+        # return void list if no instances
+        return list()
     recursive_instance_list = list()
     instance_list = scene.selectedByType(c.MESHINST_TYPE)
     for meshinst in instance_list:
         # accumulate list of instances for all meshinst items
-        recursive_instance_list = recursive_instance_list + get_instance_list_from_source(meshinst)
+        recursive_instance_list = (
+            recursive_instance_list + get_instance_list_from_source(meshinst)
+        )
     return instance_list + recursive_instance_list
 
 
@@ -224,41 +239,45 @@ def get_group(name):
 
 
 print()
-print('Start...')
+print("Start...")
 # ---------- ----------
 
-rotation_parent_marker = lx.eval('user.value h3d_rcr_rotation_marker ?')
-ref_group_name = lx.eval('user.value h3d_rcr_meshref_grp_name ?')
-failed_group_name = lx.eval('user.value h3d_rcr_failed_grp_name ?')
+rotation_parent_marker = lx.eval("user.value h3d_rcr_rotation_marker ?")
+ref_group_name = lx.eval("user.value h3d_rcr_meshref_grp_name ?")
+failed_group_name = lx.eval("user.value h3d_rcr_failed_grp_name ?")
 
-for rotation_parent in scene.items(itype=c.LOCATOR_TYPE, name='*{}*'.format(rotation_parent_marker)):
+for rotation_parent in scene.items(
+    itype=c.LOCATOR_TYPE, name="*{}*".format(rotation_parent_marker)
+):
     # get list of working items
-    working_items_list = get_working_items_list(source=rotation_parent, root=rotation_parent)
+    working_items_list = get_working_items_list(
+        source=rotation_parent, root=rotation_parent
+    )
 
     # replace reference item by copy, manage reference instances
     prepared_items = fix_meshref(working_items_list)
 
     # iterate (recursive) downstream and freeze mesh position for children
-    freeze_child_position(items_to_proceed=prepared_items, source=rotation_parent, root=rotation_parent)
+    freeze_child_position(
+        items_to_proceed=prepared_items, source=rotation_parent, root=rotation_parent
+    )
     for item in processed_items:
         if c.item_type(item.type) == c.MESHINST_TYPE:
             item.select(replace=True)
-            lx.eval('transform.reset translation')
+            lx.eval("transform.reset translation")
 
 failed_items_group = get_group(failed_group_name)
 scene.deselect()
-lx.eval('select.drop item')
-print('failed items: {}'.format(failed_items))
+lx.eval("select.drop item")
+print("failed items: {}".format(failed_items))
 for item in failed_items:
-    # item.select()
     lx.eval('select.subItem "{}" add'.format(item.id))
-# failed_items_group.select()
 lx.eval('select.subItem "{}" add'.format(failed_items_group.id))
-lx.eval('group.edit add item')
+lx.eval("group.edit add item")
 
 scene.deselect()
 for item in processed_items:
     item.select()
 
 # ---------- ----------
-print('Done.')
+print("Done.")
